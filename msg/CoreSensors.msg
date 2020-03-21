@@ -1,0 +1,12 @@
+uint16 time_stamp
+uint8 bumper
+uint8 wheel_drop
+uint8 cliff
+uint16 left_encoder
+uint16 right_encoder
+char left_pwm
+char right_pwm
+uint8 buttons
+uint8 charger
+float64 battery
+uint8 over_current

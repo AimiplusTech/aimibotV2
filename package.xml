@@ -1,0 +1,120 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>aimibot</name>
+  <version>0.0.0</version>
+  <description>The aimibot package</description>
+
+  <!-- One maintainer tag required, multiple allowed, one person per tag -->
+  <!-- Example:  -->
+  <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
+  <maintainer email="ym@todo.todo">ym</maintainer>
+
+
+  <!-- One license tag required, multiple allowed, one license per tag -->
+  <!-- Commonly used license strings: -->
+  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
+  <license>TODO</license>
+
+
+  <!-- Url tags are optional, but multiple are allowed, one per tag -->
+  <!-- Optional attribute type can be: website, bugtracker, or repository -->
+  <!-- Example: -->
+  <!-- <url type="website">http://wiki.ros.org/aimibot</url> -->
+
+
+  <!-- Author tags are optional, multiple are allowed, one per tag -->
+  <!-- Authors do not have to be maintainers, but could be -->
+  <!-- Example: -->
+  <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
+
+
+  <!-- The *depend tags are used to specify dependencies -->
+  <!-- Dependencies can be catkin packages or system dependencies -->
+  <!-- Examples: -->
+  <!-- Use depend as a shortcut for packages that are both build and exec dependencies -->
+  <!--   <depend>roscpp</depend> -->
+  <!--   Note that this is equivalent to the following: -->
+  <!--   <build_depend>roscpp</build_depend> -->
+  <!--   <exec_depend>roscpp</exec_depend> -->
+  <!-- Use build_depend for packages you need at compile time: -->
+  <!--   <build_depend>message_generation</build_depend> -->
+  <!-- Use build_export_depend for packages you need in order to build against this package: -->
+  <!--   <build_export_depend>message_generation</build_export_depend> -->
+  <!-- Use buildtool_depend for build tool packages: -->
+  <!--   <buildtool_depend>catkin</buildtool_depend> -->
+  <!-- Use exec_depend for packages you need at runtime: -->
+  <!--   <exec_depend>message_runtime</exec_depend> -->
+  <!-- Use test_depend for packages you need only for testing: -->
+  <!--   <test_depend>gtest</test_depend> -->
+  <!-- Use doc_depend for packages you need only for building documentation: -->
+  <!--   <doc_depend>doxygen</doc_depend> -->
+  
+
+  
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend> 
+  <exec_depend>roscpp</exec_depend>
+  
+  
+    <build_depend>Cliff</build_depend>
+  <exec_depend>Cliff</exec_depend> 
+  
+  <build_depend>std_msgs</build_depend>
+  <build_depend>serial</build_depend>     
+  <build_depend>ecl_exceptions</build_depend> 
+  <build_depend>ecl_sigslots</build_depend> 
+  <build_depend>ecl_streams</build_depend> 
+  <build_depend>ecl_threads</build_depend> 
+  <build_depend>eigen</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>joy</build_depend>
+  
+  <build_depend>ecl_build</build_depend>
+  <build_depend>ecl_mobile_robot</build_depend>
+  <build_depend>ecl_converters</build_depend>
+  <build_depend>ecl_devices</build_depend>
+  <build_depend>ecl_geometry</build_depend>
+  <build_depend>ecl_sigslots</build_depend>
+  <build_depend>ecl_time</build_depend>
+  <build_depend>ecl_command_line</build_depend>
+  
+  <build_depend>message_generation</build_depend>
+  <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>std_msgs</build_export_depend>
+  <build_export_depend>serial</build_export_depend>
+  <build_export_depend>ecl_exceptions</build_export_depend> 
+  <build_export_depend>ecl_sigslots</build_export_depend> 
+  <build_export_depend>ecl_streams</build_export_depend> 
+  <build_export_depend>ecl_threads</build_export_depend>
+  <build_export_depend>eigen</build_export_depend>
+ 
+  <exec_depend>message_runtime</exec_depend>
+
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>serial</exec_depend>
+  <exec_depend>ecl_exceptions</exec_depend> 
+  <exec_depend>ecl_sigslots</exec_depend> 
+  <exec_depend>ecl_streams</exec_depend> 
+  <exec_depend>ecl_threads</exec_depend> 
+  <exec_depend>eigen</exec_depend> 
+  <exec_depend>joy</exec_depend> 
+
+  <exec_depend>ecl_mobile_robot</exec_depend>
+  <exec_depend>ecl_converters</exec_depend>
+  <exec_depend>ecl_devices</exec_depend>
+  <exec_depend>ecl_geometry</exec_depend>
+  <exec_depend>ecl_sigslots</exec_depend>
+  <exec_depend>ecl_time</exec_depend>
+  <exec_depend>ecl_command_line</exec_depend>
+  <exec_depend>tf</exec_depend>
+  
+
+  
+
+  
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+
+  </export>
+</package>

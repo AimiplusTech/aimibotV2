@@ -1,0 +1,60 @@
+<launch>
+  <arg name="simulation"        default="AIMIBOT_SIMULATION"/>
+  <arg name="serialport"        default="/dev/aimibot" />
+
+  <param name="/use_sim_time" value="$(arg simulation)"/>
+
+
+  <arg name="model" default="$(find aimibot2_description)/urdf/aimibot.urdf"/>
+  <arg name="gui" default="false" />
+  <param name="robot_description" textfile="$(arg model)" />
+  <param name="use_gui" value="$(arg gui)" />
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+
+
+  <!-- important generally, but specifically utilised by the current app manager -->  
+  <param name="robot/name" value="$(optenv ROBOT aimibot)"/>
+  <param name="robot/type" value="aimibot"/>
+  
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="20.0" />
+  </node>
+  <node pkg="diagnostic_aggregator" type="aggregator_node" name="diagnostic_aggregator" >
+    <rosparam command="load" file="$(find aimibot)/param/diagnostics.yaml" />
+  </node>
+
+
+  <!-- mobile base nodelet manager -->
+  <node pkg="nodelet" type="nodelet" name="mobile_base_nodelet_manager" args="manager"/>
+  
+
+  <arg name="manager"/>
+  
+   <!--  smooths inputs from cmd_vel_mux/input/teleop_raw to cmd_vel_mux/input/teleop -->
+   <!--<include file="$(find aimibot)/launch/includes/teleop_vel.launch.xml"/>
+
+    <node pkg="aimibot" type="aimibot_teleop_joy" name="aimibot_teleop_joystick">
+    <param name="scale_angular" value="1.5"/>
+    <param name="scale_linear" value="3.5"/>
+    <remap from="aimibot_teleop_joystick/cmd_vel" to="teleop_velocity_smoother/raw_cmd_vel"/>
+   </node>
+    <node pkg="joy" type="joy_node" name="joystick"/> -->
+
+  <node pkg="aimibot" type="aimibot" name="aimibot" >
+    <param name="serial_port" value="$(arg serialport)"/>
+    <param name="odom_frame"      value="odom"/>
+    <param name="base_frame"      value="base_footprint"/>
+    <param name="use_imu_heading" value="false" />
+    <param name="publish_tf"      value="true" />
+  </node>
+  
+
+  
+  <!-- velocity commands multiplexer -->
+  <node pkg="nodelet" type="nodelet" name="cmd_vel_mux" args="load yocs_cmd_vel_mux/CmdVelMuxNodelet mobile_base_nodelet_manager">
+    <param name="yaml_cfg_file" value="$(find aimibot)/param/mux.yaml"/>
+    <remap from="cmd_vel_mux/output" to="aimibot/commands/velocity"/>
+  </node>
+
+
+</launch>

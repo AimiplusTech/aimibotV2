@@ -1,0 +1,17 @@
+<launch>
+ <arg name="serialport"  default="/dev/ttyUSB0" />
+  <node pkg="aimibot" type="aimibot_teleop_key" name="aimibot_teleop_keyboard"  output="screen">
+    <param name="scale_linear" value="0.5" type="double"/>
+    <param name="scale_angular" value="1.5" type="double"/>
+    <remap from="aimibot_teleop_keyboard/cmd_vel" to="aimibot/commands/velocity"/>
+  </node>
+  
+  <node pkg="aimibot" type="aimibot" name="aimibot" >
+    <param name="serial_port" value="$(arg serialport)"/>
+    <param name="odom_frame"      value="odom"/>
+    <param name="base_frame"      value="base_footprint"/>
+    <param name="use_imu_heading" value="true" />
+    <param name="publish_tf"      value="true" />
+  </node>
+  
+</launch>

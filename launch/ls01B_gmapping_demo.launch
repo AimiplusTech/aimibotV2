@@ -1,0 +1,92 @@
+<launch>
+
+  <!-- Define laser type-->
+  <arg name="laser_type" default="ls01B" />
+ 
+  <!-- laser driver -->
+   <!-- <arg name="inverted" default="false" />
+    <arg name="serialport"  default="/dev/laser" />
+    <node name="ls01B" pkg="ls01B" type="ls01B" output="screen">
+　　  <param name="scan_topic" value="scan"/>         #设置激光数据topic名称
+　　  <param name="laser_link" value="laser"/>     #激光坐标
+     <param name="serial_port" value="$(arg serialport)"/>  #雷达连接的串口
+     <param name="inverted" value="$(arg inverted)"/>           # 如果0度方向在串口线的方向上设置为true 
+     <param name="angle_disable_min" type="double" value="360"/>
+     <param name="angle_disable_max" type="double" value="1080"/>
+    </node>
+    <node pkg="tf" type="static_transform_publisher" name="base_to_laser" args="0.0 0.0 0.44 0.0 0.0 0.0 base_link laser 100"/> -->
+
+  <node name="ls01b_v2" pkg="ls01b_v2" type="ls01b_v2" output="screen">
+        <param name="scan_topic" value="scan"/>         #设置激光数据topic名称
+        <param name="frame_id" value="laser_link"/>     #激光坐标
+        <param name="serial_port" value="/dev/laser"/>  #雷达连接的串口
+        <param name="baud_rate" value="460800" />        #雷达连接的串口波特率
+        <param name="angle_resolution" value="0.25"/>     #雷达角度分辨率
+        <param name="zero_as_max" value="false"/>        # 设置为true探测不到区域会变成最大值
+        <param name="min_as_zero" value="false"/>        # true：探测不到区域为0，false：探测不到区域为inf
+        <param name="angle_disable_min_0" value="90"/>    # 角度制，从angle_disable_min到angle_disable_max之前的值为0
+        <param name="angle_disable_max_0" value="270"/>
+        <param name="angle_disable_min_1" value="-1"/>    # 角度制，从angle_disable_min到angle_disable_max之前的值为0
+        <param name="angle_disable_max_1" value="-1"/>
+        <param name="angle_disable_min_2" value="-1"/>    # 角度制，从angle_disable_min到angle_disable_max之前的值为0
+        <param name="angle_disable_max_2" value="-1"/>
+        <param name="angle_disable_min_3" value="-1"/>    # 角度制，从angle_disable_min到angle_disable_max之前的值为0
+        <param name="angle_disable_max_3" value="-1"/>
+        <param name="angle_disable_min_4" value="-1"/>    # 角度制，从angle_disable_min到angle_disable_max之前的值为0
+        <param name="angle_disable_max_4" value="-1"/>
+        <param name="robot_radius" value="0.15"/>         # 机器人半径
+        <param name="center_x" value="-0.255"/>            # 雷达坐标系下机器人中心位置
+        <param name="center_y" value="0"/>
+    </node>
+    <!-- <node pkg="tf" type="static_transform_publisher" name="base_to_laser" args="0.255 0 0.062 0.0 0.0 0.0 base_link laser 100"/> -->
+ 
+  <arg name="scan_topic"  default="scan" />
+  <arg name="base_frame"  default="base_footprint"/>
+  <arg name="odom_frame"  default="odom"/>
+
+  <node pkg="gmapping" type="slam_gmapping" name="slam_gmapping" output="screen">
+    <param name="base_frame" value="$(arg base_frame)"/>
+    <param name="odom_frame" value="$(arg odom_frame)"/>
+    <param name="map_update_interval" value="0.5"/>
+    <param name="maxUrange" value="15"/>
+    <param name="maxRange" value="20"/>
+    <param name="sigma" value="0.05"/>
+    <param name="kernelSize" value="3"/>
+    <param name="lstep" value="0.05"/>
+    <param name="astep" value="0.05"/>
+    <param name="iterations" value="5"/>
+    <param name="lsigma" value="0.075"/>
+    <param name="ogain" value="3.0"/>
+    <param name="lskip" value="0"/>
+    <param name="minimumScore" value="30"/>
+    <param name="srr" value="0.01"/>
+    <param name="srt" value="0.02"/>
+    <param name="str" value="0.01"/>
+    <param name="stt" value="0.02"/>
+    <param name="linearUpdate" value="0.05"/>
+    <param name="angularUpdate" value="0.0436"/>
+    <param name="temporalUpdate" value="-1.0"/>
+    <param name="resampleThreshold" value="0.5"/>
+    <param name="particles" value="30"/>
+  <!--
+    <param name="xmin" value="-50.0"/>
+    <param name="ymin" value="-50.0"/>
+    <param name="xmax" value="50.0"/>
+    <param name="ymax" value="50.0"/>
+  make the starting size small for the benefit of the Android client's memory...
+  -->
+    <param name="xmin" value="-1.0"/>
+    <param name="ymin" value="-1.0"/>e
+    <param name="xmax" value="1.0"/>
+    <param name="ymax" value="1.0"/>
+
+    <param name="delta" value="0.05"/>
+    <param name="llsamplerange" value="0.01"/>
+    <param name="llsamplestep" value="0.01"/>
+    <param name="lasamplerange" value="0.005"/>
+    <param name="lasamplestep" value="0.005"/>
+    <remap from="scan" to="$(arg scan_topic)"/>
+  </node>
+
+   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find aimibot)/rviz/navigation.rviz"/>
+</launch>

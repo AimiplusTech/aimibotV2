@@ -1,0 +1,24 @@
+<launch>
+    <!-- include minimal launch file -->
+    <include file="$(find aimibot)/launch/minimal.launch">
+    </include>
+    <!-- include gmapping launch file -->
+    <include file="$(find aimibot)/launch/ls01B_gmapping_demo.launch">
+    </include>
+    <!-- include logitech joy launch file -->
+    <!--<include file="$(find aimibot)/launch/includes/velocity_smoother.launch.xml"/>
+    <node pkg="aimibot" type="aimibot_teleop_joy" name="aimibot_teleop_joystick">
+      <param name="scale_angular" value="0.3"/>
+      <param name="scale_linear" value="0.2"/>
+      <remap from="aimibot_teleop_joystick/cmd_vel" to="teleop_velocity_smoother/raw_cmd_vel"/>
+    </node>
+    <node pkg="joy" type="joy_node" name="joystick"/>-->
+     <arg name="serialport"  default="/dev/ttyUSB1" />
+  <!-- <node pkg="aimibot" type="aimibot_teleop_key" name="aimibot_teleop_keyboard"  output="screen">
+    <param name="scale_linear" value="0.5" type="double"/>
+    <param name="scale_angular" value="1.5" type="double"/>
+    <remap from="aimibot_teleop_keyboard/cmd_vel" to="aimibot/commands/velocity"/>
+  </node> -->
+
+
+</launch>

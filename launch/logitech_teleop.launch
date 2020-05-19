@@ -1,5 +1,5 @@
 <launch>
-   <arg name="serialport"  default="/dev/aimibot" />
+   <arg name="serialport"  default="/dev/ttyUSB0" />
    <!--  smooths inputs from cmd_vel_mux/input/teleop_raw to cmd_vel_mux/input/teleop -->
    <include file="$(find aimibot)/launch/includes/velocity_smoother.launch.xml"/>
 

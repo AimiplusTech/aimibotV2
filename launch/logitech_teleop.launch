@@ -10,12 +10,12 @@
    </node>
 
   <node pkg="joy" type="joy_node" name="joystick"/>
-  <!-- <node pkg="aimibot" type="aimibot" name="aimibot" >
+  <node pkg="aimibot" type="aimibot" name="aimibot" >
     <param name="serial_port" value="$(arg serialport)"/>
     <param name="odom_frame"      value="odom"/>
     <param name="base_frame"      value="base_footprint"/>
     <param name="use_imu_heading" value="false" />
     <param name="publish_tf"      value="true" />
     <remap from="aimibot/commands/velocity" to="teleop_velocity_smoother/raw_cmd_vel"/>
-  </node>  -->
+  </node>
 </launch> 

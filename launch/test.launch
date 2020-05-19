@@ -1,5 +1,5 @@
 <launch>
-  <arg name="serialport"  default="/dev/aimibot" />
+  <arg name="serialport"  default="/dev/ttyUSB0" />
 
   <node pkg="aimibot" type="aimibot" name="aimibot" output="screen">
     <param name="serial_port"     value="$(arg serialport)"/>

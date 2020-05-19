@@ -1,6 +1,6 @@
 <launch>
   <arg name="simulation"        default="AIMIBOT_SIMULATION"/>
-  <arg name="serialport"        default="/dev/aimibot" />
+  <arg name="serialport"        default="/dev/ttyUSB0" />
 
   <param name="/use_sim_time" value="$(arg simulation)"/>
 
@@ -31,14 +31,14 @@
   <arg name="manager"/>
   
    <!--  smooths inputs from cmd_vel_mux/input/teleop_raw to cmd_vel_mux/input/teleop -->
-   <!--<include file="$(find aimibot)/launch/includes/teleop_vel.launch.xml"/>
+  <include file="$(find aimibot)/launch/includes/teleop_vel.launch.xml"/>
 
     <node pkg="aimibot" type="aimibot_teleop_joy" name="aimibot_teleop_joystick">
-    <param name="scale_angular" value="1.5"/>
-    <param name="scale_linear" value="3.5"/>
+    <param name="scale_angular" value="0.3"/>
+    <param name="scale_linear" value="0.2"/>
     <remap from="aimibot_teleop_joystick/cmd_vel" to="teleop_velocity_smoother/raw_cmd_vel"/>
    </node>
-    <node pkg="joy" type="joy_node" name="joystick"/> -->
+    <node pkg="joy" type="joy_node" name="joystick"/> 
 
   <node pkg="aimibot" type="aimibot" name="aimibot" >
     <param name="serial_port" value="$(arg serialport)"/>

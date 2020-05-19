@@ -1,0 +1,102 @@
+<launch>
+
+<!-- minimal.launch -->
+
+  <arg name="simulation"        default="AIMIBOT_SIMULATION"/>
+  <arg name="serialport"        default="/dev/ttyUSB0" />
+  <param name="/use_sim_time" value="$(arg simulation)"/>
+  <arg name="model" default="$(find aimibot2_description)/urdf/aimibot.urdf"/>
+  <arg name="gui" default="false" />
+  <param name="robot_description" textfile="$(arg model)" />
+  <param name="use_gui" value="$(arg gui)" />
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+  <!-- important generally, but specifically utilised by the current app manager -->  
+  <param name="robot/name" value="$(optenv ROBOT aimibot)"/>
+  <param name="robot/type" value="aimibot"/>
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="20.0" />
+  </node>
+  <node pkg="diagnostic_aggregator" type="aggregator_node" name="diagnostic_aggregator" >
+    <rosparam command="load" file="$(find aimibot)/param/diagnostics.yaml" />
+  </node>
+  <!-- mobile base nodelet manager -->
+  <node pkg="nodelet" type="nodelet" name="mobile_base_nodelet_manager" args="manager"/>
+  <arg name="manager"/>
+   <!--  smooths inputs from cmd_vel_mux/input/teleop_raw to cmd_vel_mux/input/teleop -->
+  <include file="$(find aimibot)/launch/includes/teleop_vel.launch.xml"/>
+    <node pkg="aimibot" type="aimibot_teleop_joy" name="aimibot_teleop_joystick">
+    <param name="scale_angular" value="0.3"/>
+    <param name="scale_linear" value="0.2"/>
+    <remap from="aimibot_teleop_joystick/cmd_vel" to="teleop_velocity_smoother/raw_cmd_vel"/>
+   </node>
+    <node pkg="joy" type="joy_node" name="joystick"/> 
+  <node pkg="aimibot" type="aimibot" name="aimibot" >
+    <param name="serial_port" value="$(arg serialport)"/>
+    <param name="odom_frame"      value="odom"/>
+    <param name="base_frame"      value="base_footprint"/>
+    <param name="use_imu_heading" value="false" />
+    <param name="publish_tf"      value="true" />
+  </node>
+  <!-- velocity commands multiplexer -->
+  <node pkg="nodelet" type="nodelet" name="cmd_vel_mux" args="load yocs_cmd_vel_mux/CmdVelMuxNodelet mobile_base_nodelet_manager">
+    <param name="yaml_cfg_file" value="$(find aimibot)/param/mux.yaml"/>
+    <remap from="cmd_vel_mux/output" to="aimibot/commands/velocity"/>
+  </node>
+
+
+
+<!-- ls01B_laser.launch -->
+
+ <node name="ls01b_v2" pkg="ls01b_v2" type="ls01b_v2" output="screen">
+        <param name="scan_topic" value="scan"/>         #设置激光数据topic名称
+        <param name="frame_id" value="laser_link"/>     #激光坐标
+        <param name="serial_port" value="/dev/ttyUSB1"/>  #雷达连接的串口
+        <param name="baud_rate" value="460800" />        #雷达连接的串口波特率
+        <param name="angle_resolution" value="0.25"/>     #雷达角度分辨率
+        <param name="zero_as_max" value="false"/>        # 设置为true探测不到区域会变成最大值
+        <param name="min_as_zero" value="false"/>        # true：探测不到区域为0，false：探测不到区域为inf
+        <param name="angle_disable_min_0" value="90"/>    # 角度制，从angle_disable_min到angle_disable_max之前的值为0
+        <param name="angle_disable_max_0" value="270"/>
+        <param name="angle_disable_min_1" value="-1"/>    # 角度制，从angle_disable_min到angle_disable_max之前的值为0
+        <param name="angle_disable_max_1" value="-1"/>
+        <param name="angle_disable_min_2" value="-1"/>    # 角度制，从angle_disable_min到angle_disable_max之前的值为0
+        <param name="angle_disable_max_2" value="-1"/>
+        <param name="angle_disable_min_3" value="-1"/>    # 角度制，从angle_disable_min到angle_disable_max之前的值为0
+        <param name="angle_disable_max_3" value="-1"/>
+        <param name="angle_disable_min_4" value="-1"/>    # 角度制，从angle_disable_min到angle_disable_max之前的值为0
+        <param name="angle_disable_max_4" value="-1"/>
+        <param name="robot_radius" value="0.15"/>         # 机器人半径
+        <param name="center_x" value="-0.255"/>            # 雷达坐标系下机器人中心位置
+        <param name="center_y" value="0"/>
+    </node>
+    <!-- <node pkg="tf" type="static_transform_publisher" name="base_to_laser" args="0.255 0.0 0.062 0.0 0.0 0.0 base_link laser_link 100"/> -->
+    <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find ls01b_v2)/rviz.rviz"/> -->
+    <!-- <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+    </include>
+    <node pkg="tf" type="static_transform_publisher" name="camera_to_base" args="0.255 0.0 0.5 0.0 0.0 0.0 base_footprint camera_link 100"/> -->
+
+
+<!-- amcl_demo.launch -->
+
+  <!-- Map server -->
+  <arg name="map_file" default="/home/aimibot/map/aimijia_ws1.yaml"/>
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
+  <!-- AMCL -->
+  <arg name="custom_amcl_launch_file" default="$(find aimibot)/launch/includes/aimibot_amcl.launch.xml"/>
+  <arg name="initial_pose_x" default="0.0"/> <!-- Use 17.0 for willow's map in simulation -->
+  <arg name="initial_pose_y" default="0.0"/> <!-- Use 17.0 for willow's map in simulation -->
+  <arg name="initial_pose_a" default="0.0"/>
+  <include file="$(arg custom_amcl_launch_file)">
+    <arg name="initial_pose_x" value="$(arg initial_pose_x)"/>
+    <arg name="initial_pose_y" value="$(arg initial_pose_y)"/>
+    <arg name="initial_pose_a" value="$(arg initial_pose_a)"/>
+  </include>
+  <!-- Move base -->
+  <arg name="custom_param_file" default="$(find aimibot)/param/aimibot_costmap_params.yaml"/>
+  <include file="$(find aimibot)/launch/includes/move_base.launch.xml">
+    <arg name="custom_param_file" value="$(arg custom_param_file)"/>
+  </include>
+<node name="rviz" pkg="rviz" type="rviz" args="-d $(find aimibot)/rviz/navigation.rviz"/>
+
+
+</launch>

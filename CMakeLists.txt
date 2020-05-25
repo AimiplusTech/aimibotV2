@@ -236,12 +236,12 @@ target_link_libraries(aimibot ${catkin_LIBRARIES})
 add_dependencies(aimibot aimibot_gencpp)
 add_executable(qua src/qua.cpp )
 target_link_libraries(qua ${catkin_LIBRARIES})
-add_executable(move_demo src/move.cpp )
-target_link_libraries(move_demo ${catkin_LIBRARIES})
-
-
+add_executable(movecircular src/movecircular.cpp)
+target_link_libraries(movecircular ${catkin_LIBRARIES})
 add_executable(aimibot_teleop_joy src/aimibot_joy.cpp)
 target_link_libraries(aimibot_teleop_joy ${catkin_LIBRARIES})
+add_executable(UltrasnoicObstacle src/UltrasnoicObstacle.cpp)
+target_link_libraries(UltrasnoicObstacle ${catkin_LIBRARIES})
 
 #############
 ## Install ##

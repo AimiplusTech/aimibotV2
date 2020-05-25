@@ -1,0 +1,26 @@
+<launch>
+  <!-- 开启深度相机 -->
+  <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+     <arg name="align_depth" value="true" />
+  </include>
+
+  <!-- 开启激光雷达扫描 -->
+  <include file="$(find aimibot)/launch/ls01B_laser.launch" />
+  
+  <!-- Move base 路径规划与运动控制 -->
+  <arg name="custom_param_file" default="$(find aimibot)/param/aimibot_costmap_params.yaml"/>
+  <include file="$(find aimibot)/launch/includes/move_base.launch.xml">
+    <arg name="custom_param_file" value="$(arg custom_param_file)"/>
+  </include>
+
+  <!-- 发布tf 连接realsense 到 艾米家机器人的 相机位置上  -->
+  <node pkg="tf" type="static_transform_publisher" name="camera_to_realsense" 
+        args="0 0 0 0 0 0 realsense_link camera_link 100"/>
+
+  <!-- 设置相机图像的压缩参数，降低带宽 -->
+  <node name="dynparam_pnglevel" pkg="dynamic_reconfigure" type="dynparam" args="set_from_parameters /camera/aligned_depth_to_color/image_raw/compressedDepth">
+    <param name="png_level" type="int" value="3" />
+  </node>
+
+
+</launch>

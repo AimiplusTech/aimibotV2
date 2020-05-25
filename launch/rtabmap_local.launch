@@ -1,0 +1,189 @@
+<launch>
+    <!-- 参数 -->
+    <arg name="rgb_topic"               default="/camera/color/image_raw" />
+    <arg name="depth_topic"             default="/camera/aligned_depth_to_color/image_raw" />
+    <arg name="camera_info_topic"       default="/camera/color/camera_info" /> 
+    <arg name="rviz"   type="bool"      default="false" />
+    <arg name="rviz_cfg"                default="$(find aimibot)/launch/config/turtlebot_navigation.rviz" />
+    <arg name="localization"      default="false"/>
+    <arg     if="$(arg localization)" name="args" type="string" default=""/>
+    <arg unless="$(arg localization)" name="args" type="string" default="--delete_db_on_start"/>
+    <arg name="subscribe_scan"   type="bool"      default="true" />
+    <arg name="database_path"           default="~/map/rtabmap_myhome.db"/>
+
+
+    <!-- aimibot  minimal -->  
+    <arg name="simulation"        default="AIMIBOT_SIMULATION"/>
+    <arg name="serialport"        default="/dev/ttyUSB0" />
+    <param name="/use_sim_time" value="$(arg simulation)"/>
+    <arg name="model" default="$(find aimibot2_description)/urdf/aimibot.urdf"/>
+    <arg name="gui" default="false" />
+    <param name="robot_description" textfile="$(arg model)" />
+    <param name="use_gui" value="$(arg gui)" />
+    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+    <!-- important generally, but specifically utilised by the current app manager -->  
+    <param name="robot/name" value="$(optenv ROBOT aimibot)"/>
+    <param name="robot/type" value="aimibot"/>
+    <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+        <param name="publish_frequency" type="double" value="20.0" />
+    </node>
+    <node pkg="diagnostic_aggregator" type="aggregator_node" name="diagnostic_aggregator" >
+        <rosparam command="load" file="$(find aimibot)/param/diagnostics.yaml" />
+    </node>
+    <!-- mobile base nodelet manager -->
+    <node pkg="nodelet" type="nodelet" name="mobile_base_nodelet_manager" args="manager"/> 
+    <arg name="manager"/>
+    <!--  只有建图模式的时候才允许用手柄 -->
+    <include unless="$(arg localization)" file="$(find aimibot)/launch/includes/teleop_vel.launch.xml"/>
+    <node    unless="$(arg localization)" pkg="aimibot" type="aimibot_teleop_joy" name="aimibot_teleop_joystick">
+        <param name="scale_angular" value="0.3"/>
+        <param name="scale_linear" value="0.2"/>
+        <remap from="aimibot_teleop_joystick/cmd_vel" to="teleop_velocity_smoother/raw_cmd_vel"/>
+    </node>
+    <node unless="$(arg localization)" pkg="joy" type="joy_node" name="joystick"/> 
+
+    <node pkg="aimibot" type="aimibot" name="aimibot" >
+        <param name="serial_port" value="$(arg serialport)"/>
+        <param name="odom_frame"      value="odom"/>
+        <param name="base_frame"      value="base_footprint"/>
+        <param name="use_imu_heading" value="false" />
+        <param name="publish_tf"      value="true" />
+        <remap unless="$(arg localization)" from="aimibot/commands/velocity" to="teleop_velocity_smoother/raw_cmd_vel"/>
+    </node>
+    
+
+    
+    <!-- velocity commands multiplexer -->
+    <node pkg="nodelet" type="nodelet" name="cmd_vel_mux" args="load yocs_cmd_vel_mux/CmdVelMuxNodelet mobile_base_nodelet_manager">
+        <param name="yaml_cfg_file" value="$(find aimibot)/param/mux.yaml"/>
+        <remap from="cmd_vel_mux/output" to="aimibot/commands/velocity"/>
+    </node>
+
+    <!-- 开启深度相机 -->
+    <include file="$(find realsense2_camera)/launch/rs_camera.launch">
+        <arg name="align_depth" value="true" />
+    </include>
+
+    <!-- 开启激光雷达扫描 -->
+    <include file="$(find aimibot)/launch/ls01B_laser.launch" />
+    
+    <!-- Move base 路径规划与运动控制 -->
+    <arg name="custom_param_file" default="$(find aimibot)/param/aimibot_costmap_params.yaml"/>
+    <include file="$(find aimibot)/launch/includes/move_base.launch.xml">
+        <arg name="custom_param_file" value="$(arg custom_param_file)"/>
+    </include>
+
+    <!-- 发布tf 连接realsense 到 艾米家机器人的 相机位置上  -->
+    <node pkg="tf" type="static_transform_publisher" name="camera_to_realsense" 
+            args="0 0 0 0 0 0 realsense_link camera_link 100"/>
+
+    <!-- 设置相机图像的压缩参数，降低带宽 -->
+    <node name="dynparam_pnglevel" pkg="dynamic_reconfigure" type="dynparam" args="set_from_parameters /camera/aligned_depth_to_color/image_raw/compressedDepth">
+        <param name="png_level" type="int" value="4" />
+    </node>
+
+    
+
+
+    <group ns="rtabmap">
+ 
+        <!-- Visual SLAM (robot side) -->
+        <node name="rtabmap" pkg="rtabmap_ros" type="rtabmap" output="screen" args="$(arg args)">
+            <param name="frame_id" type="string" value="base_footprint"/>
+            <param name="odom_frame_id" type="string" value="odom"/>
+            <param name="map_frame_id" type="string" value="map"/>
+            
+            
+
+            <param name="subscribe_depth" type="bool" value="true"/>
+            <param name="subscribe_scan" type="bool" value="$(arg subscribe_scan)"/>
+            
+            <remap from="odom" to="/odom"/>
+            <remap from="scan" to="/scan"/>
+            <remap from="rgb/image"       to="$(arg rgb_topic)"/>
+            <remap from="depth/image"     to="$(arg depth_topic)"/>
+            <remap from="rgb/camera_info" to="$(arg camera_info_topic)"/>
+            
+            <param name="queue_size" type="int" value="10"/>
+
+            <param name="wait_for_transform" type="bool" value="true"/>
+
+            <param name="map_negative_poses_ignored" type="bool" value="true"/>
+
+            <!-- When sending goals on /rtabmap/goal topic, use actionlib to communicate with move_base --> 
+            <param name="use_action_for_goal" type="bool" value="true"/>
+            <remap from="move_base"            to="/move_base"/>
+            
+            <!-- output -->
+            <remap from="grid_map" to="/map"/>
+            
+
+            <!-- RTAB-Map's parameters -->
+            <param name="RGBD/NeighborLinkRefining" type="string" value="true"/>
+            <param name="RGBD/ProximityBySpace"     type="string" value="true"/>
+            <param name="RGBD/AngularUpdate"        type="string" value="0.01"/>
+            <param name="RGBD/LinearUpdate"         type="string" value="0.01"/>
+            <param name="RGBD/OptimizeFromGraphEnd" type="string" value="false"/>
+            <param name="Grid/FromDepth"            type="string" value="false"/> <!-- false: occupancy grid from lidar  true: from proj-->
+            <param name="Reg/Force3DoF"             type="string" value="true"/>
+            <param name="Reg/Strategy"              type="string" value="0"/> <!-- 1=ICP -->
+            
+            <param name="Kp/MaxDepth"                  type="string" value="4.0"/>
+            <param name="Vis/MinInliers"               type="string" value="15"/>      <!-- 3D visual words minimum inliers to accept loop closure -->
+            <param name="Vis/InlierDistance"           type="string" value="0.1"/>    <!-- 3D visual words correspondence distance -->
+            <param name="RGBD/AngularUpdate"           type="string" value="0.1"/>    <!-- Update map only if the robot is moving -->
+            <param name="RGBD/LinearUpdate"            type="string" value="0.1"/>    <!-- Update map only if the robot is moving -->
+            <param name="RGBD/ProximityPathMaxNeighbors" type="string" value="0"/> 
+            <param name="GridGlobal/MinSize"           type="string" value="20"/>
+            <param name="Mem/RehearsalSimilarity"      type="string" value="0.30"/>
+            <param name="Rtabmap/TimeThr"              type="string" value="0"/>
+
+            <!-- ICP parameters -->
+            <param name="Icp/VoxelSize"                 type="string" value="0.05"/>
+            <param name="Icp/MaxCorrespondenceDistance" type="string" value="0.1"/>
+            <param name="Icp/CorrespondenceRatio"      type="string" value="0.3"/>
+
+            <param name="Grid/MaxGroundHeight" value="0.0"/>
+            <param name="Grid/MaxObstacleHeight" value="0.2"/>
+
+            <!-- localization mode -->
+            <param     if="$(arg localization)" name="Mem/IncrementalMemory" type="string" value="false"/>
+            <param unless="$(arg localization)" name="Mem/IncrementalMemory" type="string" value="true"/>
+            <param name="Mem/InitWMWithAllNodes" type="string" value="$(arg localization)"/> 
+            <param if="$(arg localization)" name="database_path"        type="string" value="$(arg database_path)"/>
+
+        </node>
+        
+    
+        <!-- Visualisation RTAB-Map -->
+        <node unless="$(arg rviz)" pkg="rtabmap_ros" type="rtabmapviz" name="rtabmapviz" args="-d $(find rtabmap_ros)/launch/config/rgbd_gui.ini" output="screen">
+            <param name="subscribe_depth" type="bool" value="true"/>
+            <param name="subscribe_scan"     type="bool" value="$(arg subscribe_scan)"/>
+            <param name="frame_id"           type="string" value="base_footprint"/>
+            <param name="wait_for_transform" type="bool" value="true"/>
+            
+            <remap from="rgb/image"       to="$(arg rgb_topic)"/>
+            <remap from="depth/image"     to="$(arg depth_topic)"/>
+            <remap from="rgb/camera_info" to="$(arg camera_info_topic)"/>
+            <remap from="scan"            to="/scan"/>
+            <remap from="odom"            to="/odom"/>
+        
+            <!--<param name="rgb/image_transport"   type="string" value="compressed"/>
+            <param name="depth/image_transport" type="string" value="compressedDepth"/>-->
+        </node> 
+
+        <node if="$(arg rviz)" pkg="rviz" type="rviz" name="rviz" args="-d $(arg rviz_cfg)" />
+        <!-- Construct and voxelize the point cloud (for fast visualization in rviz) -->
+        <node if="$(arg rviz)" pkg="nodelet" type="nodelet" name="points_xyzrgb" args="standalone rtabmap_ros/point_cloud_xyzrgb">
+            <remap from="rgb/image"         to="$(arg rgb_topic)"/>
+            <remap from="depth/image"       to="$(arg depth_topic)"/>
+            <remap from="rgb/camera_info"   to="$(arg camera_info_topic)"/>        
+            <remap from="cloud"           to="voxel_cloud" />
+
+            <param name="queue_size" type="int" value="10"/>
+            <param name="voxel_size" type="double" value="0.01"/>
+        </node>
+    </group>
+
+
+</launch>

@@ -5,7 +5,7 @@
  
   <!-- laser driver -->
    <!-- <arg name="inverted" default="false" />
-    <arg name="serialport"  default="/dev/ttyUSB1" />
+    <arg name="serialport"  default="/dev/laser" />
     <node name="ls01B" pkg="ls01B" type="ls01B" output="screen">
 　　  <param name="scan_topic" value="scan"/>         #设置激光数据topic名称
 　　  <param name="laser_link" value="laser"/>     #激光坐标
@@ -19,7 +19,7 @@
   <node name="ls01b_v2" pkg="ls01b_v2" type="ls01b_v2" output="screen">
         <param name="scan_topic" value="scan"/>         #设置激光数据topic名称
         <param name="frame_id" value="laser_link"/>     #激光坐标
-        <param name="serial_port" value="/dev/ttyUSB1"/>  #雷达连接的串口
+        <param name="serial_port" value="/dev/laser"/>  #雷达连接的串口
         <param name="baud_rate" value="460800" />        #雷达连接的串口波特率
         <param name="angle_resolution" value="0.25"/>     #雷达角度分辨率
         <param name="zero_as_max" value="false"/>        # 设置为true探测不到区域会变成最大值

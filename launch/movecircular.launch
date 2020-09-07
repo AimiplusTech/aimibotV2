@@ -1,5 +1,5 @@
 <launch>
-  <arg name="serialport"  default="/dev/ttyUSB0" />
+  <arg name="serialport"  default="/dev/aimibot" />
   <param name="vel_line_"  value="0.1"/>
   <param name="vel_angle_" value="0.5"/>
 

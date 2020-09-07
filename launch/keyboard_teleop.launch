@@ -1,5 +1,5 @@
 <launch>
- <arg name="serialport"  default="/dev/ttyUSB0" />
+ <arg name="serialport"  default="/dev/aimibot" />
   <node pkg="aimibot" type="aimibot_teleop_key" name="aimibot_teleop_keyboard"  output="screen">
     <param name="scale_linear" value="0.5" type="double"/>
     <param name="scale_angular" value="1.5" type="double"/>
